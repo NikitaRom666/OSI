@@ -1,0 +1,15 @@
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\bin\Debug\net10.0\SingletonPractice.exe
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\bin\Debug\net10.0\SingletonPractice.deps.json
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\bin\Debug\net10.0\SingletonPractice.runtimeconfig.json
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\bin\Debug\net10.0\SingletonPractice.dll
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\bin\Debug\net10.0\SingletonPractice.pdb
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\obj\Debug\net10.0\SingletonPractice.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\obj\Debug\net10.0\SingletonPractice.AssemblyInfoInputs.cache
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\obj\Debug\net10.0\SingletonPractice.AssemblyInfo.cs
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\obj\Debug\net10.0\SingletonPractice.csproj.CoreCompileInputs.cache
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\obj\Debug\net10.0\SingletonPractice.sourcelink.json
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\obj\Debug\net10.0\SingletonPractice.dll
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\obj\Debug\net10.0\refint\SingletonPractice.dll
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\obj\Debug\net10.0\SingletonPractice.pdb
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\obj\Debug\net10.0\SingletonPractice.genruntimeconfig.cache
+C:\Users\tchat\Desktop\OOP-Romanenko\SingletonPractice\obj\Debug\net10.0\ref\SingletonPractice.dll
