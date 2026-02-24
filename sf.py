@@ -1,133 +1,144 @@
-from abc import ABC, abstractmethod
-import datetime
+import time
+import random
 
 # ==========================================
-# ЗАВДАННЯ 1, 3, 4: АБСТРАКЦІЯ ТА НАСЛІДУВАННЯ
+# ЕТАП 1: БАЗОВА АРХІТЕКТУРА (КЛАСИ)
 # ==========================================
 
-class FinancialAsset(ABC):
-    """
-    Абстрактний базовий клас, що описує будь-який фінансовий актив.
-    Визначає інтерфейс, який повинні реалізувати всі спадкоємці.
-    """
-    def __init__(self, symbol: str, price: float):
-        self.symbol = symbol.upper()
-        self._price = price  # Protected attribute (інкапсуляція)
+class Asset:
+    """Модель активу (криптовалюти)"""
+    def __init__(self, symbol, price):
+        self.symbol = symbol
+        self.price = price
 
-    @abstractmethod
-    def get_description(self):
-        """Абстрактний метод: кожен актив повинен мати свій опис."""
-        pass
+    def update_price(self):
+        """Імітація зміни ціни на ринку (+/- 5%)"""
+        change_percent = random.uniform(-0.05, 0.05)
+        self.price *= (1 + change_percent)
+        return change_percent
 
-    @property
-    def price(self):
-        """Геттер для отримання ціни (захищений доступ)."""
-        return self._price
+class Portfolio:
+    """Модуль управління активами користувача"""
+    def __init__(self, start_balance_usd):
+        self.balance_usd = start_balance_usd
+        self.holdings = {}  # Словник {Symbol: Quantity}
 
-    @price.setter
-    def price(self, new_price):
-        """Сеттер для зміни ціни з валідацією."""
-        if new_price < 0:
-            print(f" [Помилка] Ціна не може бути від'ємною!")
+    def buy(self, asset, amount_usd):
+        """Логіка купівлі"""
+        if amount_usd > self.balance_usd:
+            print(f" [!] Помилка: Недостатньо коштів для купівлі {asset.symbol}")
+            return False
+        
+        quantity = amount_usd / asset.price
+        self.balance_usd -= amount_usd
+        
+        if asset.symbol in self.holdings:
+            self.holdings[asset.symbol] += quantity
         else:
-            self._price = new_price
+            self.holdings[asset.symbol] = quantity
+            
+        print(f" [+] КУПЛЕНО: {quantity:.4f} {asset.symbol} за ${amount_usd:.2f} (Курс: ${asset.price:.2f})")
+        return True
 
-class CryptoCoin(FinancialAsset):
-    """
-    Клас для криптовалют. Успадковує FinancialAsset.
-    """
-    def __init__(self, symbol, price, algorithm):
-        super().__init__(symbol, price)
-        self.algorithm = algorithm
-
-    def get_description(self):
-        return f"Криптовалюта {self.symbol} (Алгоритм: {self.algorithm})"
-
-class StockShare(FinancialAsset):
-    """
-    Клас для акцій компаній. Успадковує FinancialAsset.
-    """
-    def __init__(self, symbol, price, company_name):
-        super().__init__(symbol, price)
-        self.company_name = company_name
-
-    def get_description(self):
-        return f"Акція компанії {self.company_name} (Тікер: {self.symbol})"
-
-# ==========================================
-# ЗАВДАННЯ 2, 4: ІНКАПСУЛЯЦІЯ ТА УПРАВЛІННЯ
-# ==========================================
-
-class SecureWallet:
-    """
-    Клас гаманця, що керує активами.
-    Демонструє інкапсуляцію (приватний баланс).
-    """
-    def __init__(self, owner_name, start_balance):
-        self.owner = owner_name
-        self.__balance = start_balance  # Private attribute (недоступний ззовні)
-        self.portfolio = [] # Список активів
-
-    def show_balance(self):
-        """Безпечний метод для перегляду балансу."""
-        print(f" >> Баланс гаманця {self.owner}: ${self.__balance:.2f}")
-
-    def buy_asset(self, asset: FinancialAsset, quantity: float):
-        """Метод купівлі активу."""
-        cost = asset.price * quantity
+    def sell(self, asset):
+        """Логіка продажу всього активу"""
+        if asset.symbol not in self.holdings:
+            print(f" [!] Помилка: У вас немає {asset.symbol}")
+            return False
         
-        if cost > self.__balance:
-            print(f" [X] Недостатньо коштів для купівлі {asset.symbol}. Потрібно: ${cost:.2f}")
-            return
-
-        self.__balance -= cost
-        self.portfolio.append({"asset": asset, "qty": quantity})
-        print(f" [+] Успішно куплено {quantity} шт. {asset.symbol} на суму ${cost:.2f}")
-
-    def show_portfolio_report(self):
-        """Генерує звіт по портфелю (Поліморфізм у дії)."""
-        print(f"\n --- ЗВІТ ДЛЯ {self.owner.upper()} ({datetime.date.today()}) ---")
-        total_value = self.__balance
+        quantity = self.holdings[asset.symbol]
+        revenue = quantity * asset.price
+        self.balance_usd += revenue
+        del self.holdings[asset.symbol]
         
-        for item in self.portfolio:
-            asset = item['asset']
-            qty = item['qty']
-            current_val = asset.price * qty
-            total_value += current_val
-            # Викликаємо get_description(), який різний для Крипти та Акцій
-            print(f" > {asset.get_description()} | Кількість: {qty} | Вартість: ${current_val:.2f}")
-        
-        print(f" ------------------------------------------------")
-        print(f" Всього активів + Готівка: ${total_value:.2f}\n")
+        print(f" [-] ПРОДАНО: {quantity:.4f} {asset.symbol} за ${revenue:.2f} (Курс: ${asset.price:.2f})")
+        return True
+
+    def get_total_value(self, current_assets_map):
+        """Розрахунок загальної вартості портфеля"""
+        total = self.balance_usd
+        for symbol, qty in self.holdings.items():
+            if symbol in current_assets_map:
+                total += qty * current_assets_map[symbol].price
+        return total
 
 # ==========================================
-# ЗАВДАННЯ 5, 6: ТЕСТУВАННЯ ТА ДОКУМЕНТАЦІЯ
+# ЕТАП 2: РЕАЛІЗАЦІЯ ІНТЕРФЕЙСУ ТА ЛОГІКИ
 # ==========================================
 
+class PrototypeApp:
+    def __init__(self):
+        # Ініціалізація ринку (доступні валюти)
+        self.assets = {
+            "BTC": Asset("BTC", 45000.00),
+            "ETH": Asset("ETH", 3200.00),
+            "SOL": Asset("SOL", 110.00)
+        }
+        # Ініціалізація користувача з $1000
+        self.user = Portfolio(start_balance_usd=1000.00)
+
+    def show_dashboard(self, day):
+        print("\n" + "="*40)
+        print(f" ДЕНЬ {day}: РИНОК ТА ПОРТФЕЛЬ")
+        print("="*40)
+        
+        # Відображення ринку
+        print(" [РИНОК]:")
+        for symbol, asset in self.assets.items():
+            print(f"  - {symbol}: ${asset.price:.2f}")
+
+        # Відображення портфеля
+        print(f"\n [ПОРТФЕЛЬ]:")
+        print(f"  - USD Баланс: ${self.user.balance_usd:.2f}")
+        for symbol, qty in self.user.holdings.items():
+            current_val = qty * self.assets[symbol].price
+            print(f"  - {symbol}: {qty:.4f} (Вартість: ${current_val:.2f})")
+        
+        total_val = self.user.get_total_value(self.assets)
+        print(f"\n ЗАГАЛЬНА ВАРТІСТЬ АКАУНТУ: ${total_val:.2f}")
+        print("-" * 40)
+
+    # ==========================================
+    # ЕТАП 3: ТЕСТУВАННЯ ТА ДЕМОНСТРАЦІЯ (СЦЕНАРІЙ)
+    # ==========================================
+    def run_demo_scenario(self):
+        print(">>> ЗАПУСК ПРОТОТИПУ ПРОГРАМНОГО ПРОДУКТУ <<<\n")
+        
+        # ДЕНЬ 1: Початковий стан
+        self.show_dashboard(1)
+        
+        # Тест функції купівлі
+        print("\n>>> ОПЕРАЦІЯ: Інвестуємо $500 у Bitcoin...")
+        self.user.buy(self.assets["BTC"], 500)
+        
+        print(">>> ОПЕРАЦІЯ: Інвестуємо $300 у Ethereum...")
+        self.user.buy(self.assets["ETH"], 300)
+
+        # ДЕНЬ 2: Зміна цін (Симуляція часу)
+        print("\n... Проходить 24 години ...")
+        for asset in self.assets.values():
+            change = asset.update_price()
+            # Для демо підкрутимо BTC вгору, щоб показати прибуток, якщо рандом пішов вниз
+            if asset.symbol == "BTC" and change < 0:
+                asset.price *= 1.10 # "Памп" ринку
+
+        self.show_dashboard(2)
+
+        # Тест функції продажу (Фіксація прибутку)
+        print("\n>>> ОПЕРАЦІЯ: Продаємо весь Bitcoin...")
+        self.user.sell(self.assets["BTC"])
+
+        # Фінальний звіт
+        print("\n" + "#"*40)
+        total_final = self.user.get_total_value(self.assets)
+        profit = total_final - 1000
+        print(f" ФІНАЛЬНИЙ РЕЗУЛЬТАТ:")
+        print(f" Початковий баланс: $1000.00")
+        print(f" Поточний баланс:   ${total_final:.2f}")
+        print(f" Чистий прибуток:   ${profit:.2f}")
+        print("#"*40)
+
+# Запуск програми
 if __name__ == "__main__":
-    print(">>> ЗАПУСК СИСТЕМИ (OOP DEMO) <<<\n")
-
-    # 1. Створення активів
-    btc = CryptoCoin("BTC", 45000.00, "SHA-256")
-    apple = StockShare("AAPL", 185.50, "Apple Inc.")
-    
-    # 2. Створення гаманця
-    my_wallet = SecureWallet("Nikita", 10000.00)
-    my_wallet.show_balance()
-
-    # 3. Тест інкапсуляції (спроба зламати баланс)
-    # my_wallet.__balance = 1000000 # Це викличе помилку або не спрацює
-    
-    # 4. Операції
-    my_wallet.buy_asset(btc, 0.1)     # Купуємо 0.1 Біткоїна ($4500)
-    my_wallet.buy_asset(apple, 10)    # Купуємо 10 акцій Apple ($1855)
-    
-    # 5. Спроба купити забагато (Тест логіки)
-    my_wallet.buy_asset(btc, 2.0)     # Коштує $90,000 -> Має бути відмова
-
-    # 6. Зміна ринку (використання сетера)
-    print("\n ... Новини ринку: Біткоїн виріс! ...")
-    btc.price = 48000.00 # Працює через @property
-
-    # 7. Фінальний звіт
-    my_wallet.show_portfolio_report()
+    app = PrototypeApp()
+    app.run_demo_scenario()
